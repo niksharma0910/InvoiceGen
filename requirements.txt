@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+num2words
+reportlab
+gunicorn
+python-multipart
