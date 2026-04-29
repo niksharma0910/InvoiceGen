@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PDF_DIR = os.path.join(BASE_DIR, "generated_pdfs")
 
 os.makedirs(PDF_DIR, exist_ok=True)
-filename = os.path.join(PDF_DIR, f"{file_id}.pdf")
+
 app.mount("/pdfs", StaticFiles(directory=PDF_DIR), name="pdfs")
 
 def calculate_rounding(amount):
@@ -331,7 +331,7 @@ def serve_index():
 @app.post("/invoices")
 def create_invoice(data: dict):
     file_id = str(uuid.uuid4())
-    filename = f"invoices/{file_id}.pdf"
+    filename = os.path.join(PDF_DIR, f"{file_id}.pdf")
 
     generate_pdf(data, filename)
 
