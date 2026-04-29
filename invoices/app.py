@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 import math
 from num2words import num2words
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -319,6 +320,11 @@ def generate_pdf(data, filename):
 
     doc.build(elements)
 
+@app.get("/")
+def serve_index():
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    return FileResponse(os.path.join(base_dir, "index.html"))
+    
 @app.post("/invoices")
 def create_invoice(data: dict):
     file_id = str(uuid.uuid4())
