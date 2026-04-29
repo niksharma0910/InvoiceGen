@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Generator</title>
+
+<style>
+body { font-family: Arial; margin: 10px; }
+
+h1 { font-size: 22px; }
+h2 { background: #f2f2f2; padding: 8px; }
+
+/*.row { display: flex; gap: 10px; margin-bottom: 10px; }
+.field { flex: 1; }*/
+
+.field {
+    flex: 1;
+    margin-bottom: 12px;  /* vertical spacing */
+}
+
+.row {
+    display: flex;
+    gap: 20px;  /* horizontal spacing between fields */
+    margin-bottom: 15px; /* spacing between rows */
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 4px;
+    box-sizing: border-box;
+}
+
+table button {
+    padding: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+button {
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+/* TABLE (desktop) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+}
+
+/* MOBILE ITEM CARDS */
+.item-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.remove-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 6px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .row { flex-direction: column; }
+    table { display: none; }
+}
+
+@media (min-width: 769px) {
+    .mobile-items { display: none; }
+}
+</style>
+
+</head>
+<body>
+
+<h1>Invoice Generator</h1>
+
+<h2>Invoice Details</h2>
+<div class="row">
+    <div class="field">
+        <label>Invoice No.</label>
+        <input type="text" id="invoice_no">
+    </div>
+
+    <div class="field">
+        <label>Invoice Date</label>
+        <input type="date" id="invoice_date">
+    </div>
+
+    <div class="field">
+        <label>Invoice Time</label>
+        <input type="text" id="invoice_time" placeholder="HH:MM (24h)" pattern="^([01]\d|2[0-3]):([0-5]\d)$">
+    </div>
+</div>
+
+<div class="row">
+    <div class="field">
+        <label>Order No.</label>
+        <input type="text" id="order_no">
+    </div>
+
+    <div class="field">
+        <label>Order Date</label>
+        <input type="date" id="order_date">
+    </div>
+
+    <div class="field">
+        <label>LR No.</label>
+        <input type="text" id="lr_no">
+    </div>
+</div>
+
+<div class="row">
+    <div class="field">
+        <label>LR Date</label>
+        <input type="date" id="lr_date">
+    </div>
+
+    <div class="field">
+        <label>Vehicle No.</label>
+        <input type="text" id="vehicle_no">
+    </div>
+
+    <div class="field">
+        <label>Driver Mobile No.</label>
+        <input type="text" id="driver_mobile">
+    </div>
+</div>
+
+<div class="row">
+    <div class="field">
+        <label>Transport Mode</label>
+        <input type="text" id="transporter">
+    </div>
+
+    <div class="field">
+        <label>Payment Due Date</label>
+        <input type="date" id="payment_due">
+    </div>
+</div>
+
+<h2>Receiver</h2>
+<textarea placeholder="Receiver Address" rows="4" style="resize:vertical;" id="receiver_address"></textarea>
+<div class="row">
+    <input placeholder="Email" id="receiver_email">
+    <input placeholder="Phone" id="receiver_phone">
+    <input placeholder="GSTIN" id="receiver_gstin">
+</div>
+
+<h2>Consignee</h2>
+<textarea placeholder="Consignee Address" rows="4" style="resize:vertical;" id="consignee_address"></textarea>
+<div class="row">
+    <input placeholder="Email" id="consignee_email">
+    <input placeholder="Phone" id="consignee_phone">
+    <input placeholder="GSTIN" id="consignee_gstin">
+</div>
+
+<h2>Goods</h2>
+
+<!-- DESKTOP TABLE -->
+<table id="items_table">
+<thead>
+<tr>
+<th>Description</th><th>HSN</th><th>GSM</th><th>Thickness</th><th>Size</th>
+<th>Sheets</th><th>Bundle Wt</th><th>Total Bundle</th>
+<th>Weight</th><th>Rate</th><th>Amount</th><th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<!-- MOBILE CARDS -->
+<div class="mobile-items" id="mobile_items"></div>
+
+<button onclick="addItem()">Add Item</button>
+<button onclick="submitData()">Generate Invoice</button>
+
+<script>
+
+document.getElementById("invoice_time").addEventListener("blur", function() {
+    let v = this.value
+    if(!/^([01]\d|2[0-3]):([0-5]\d)$/.test(v)){
+        alert("Enter time in 24-hour format (HH:MM)")
+        this.value = ""
+    }
+})
+
+document.getElementById("invoice_time").addEventListener("input", function(e) {
+    let v = this.value.replace(/[^0-9]/g, "")
+
+    if (v.length >= 2) {
+        this.value = v.slice(0,2) + ":" + v.slice(2,4)
+    } else {
+        this.value = v
+    }
+})
+
+function createInput(type="text") {
+    let input = document.createElement("input")
+    input.type = type
+    if(type === "number") input.step = "any"
+    return input
+}
+
+function calculateAmount(weight, rate, amountField) {
+    let w = parseFloat(weight.value) || 0
+    let r = parseFloat(rate.value) || 0
+    amountField.value = (w * r).toFixed(2)
+}
+
+function addItem() {
+
+    // DESKTOP ROW
+    let table = document.querySelector("#items_table tbody")
+    let row = document.createElement("tr")
+
+    let fields = []
+
+    for(let i=0;i<11;i++){
+        let td = document.createElement("td")
+        let input = document.createElement("input")
+
+        if (i >= 8) {
+            input.type = "number"
+            input.step = "0.01"
+        } else {
+            input.type = "text"
+        }
+        td.appendChild(input)
+        row.appendChild(td)
+        fields.push(input)
+    }
+
+    fields[8].oninput = () => calculateAmount(fields[8], fields[9], fields[10])
+    fields[9].oninput = () => calculateAmount(fields[8], fields[9], fields[10])
+
+    // ✅ ADD REMOVE BUTTON
+    let actionTd = document.createElement("td")
+    let removBtn = document.createElement("button")
+    removBtn.innerText = "Remove"
+    removBtn.style.background = "red"
+    removBtn.style.color = "white"
+    removBtn.onclick = () => row.remove()
+
+    actionTd.appendChild(removBtn)
+    row.appendChild(actionTd)
+
+    table.appendChild(row)
+
+    // MOBILE CARD
+    let card = document.createElement("div")
+    card.className = "item-card"
+
+    let inputs = {}
+
+    let labels = [
+        "Description","HSN","GSM","Thickness","Size",
+        "Sheets/Bundle","Bundle Weight","Total Bundle",
+        "Weight","Rate","Amount"
+    ]
+
+    labels.forEach((label, i) => {
+        
+        if (i >= 8) {
+            input.type = "number"
+            input.step = "0.01"   // ✅ allow decimals
+        } else {
+            input.type = "text"
+        }
+        inputs[label] = input
+        card.innerHTML += `<label>${label}</label>`
+        card.appendChild(input)
+    })
+
+    inputs["Weight"].oninput = () => calculateAmount(inputs["Weight"], inputs["Rate"], inputs["Amount"])
+    inputs["Rate"].oninput = () => calculateAmount(inputs["Weight"], inputs["Rate"], inputs["Amount"])
+
+    let removeBtn = document.createElement("button")
+    removeBtn.innerText = "Remove"
+    removeBtn.className = "remove-btn"
+    removeBtn.onclick = () => card.remove()
+
+    card.appendChild(removeBtn)
+
+    document.getElementById("mobile_items").appendChild(card)
+}
+
+function submitData() {
+
+    let data = {
+        invoice_no: document.getElementById("invoice_no").value,
+        invoice_date: document.getElementById("invoice_date").value,
+        invoice_time: document.getElementById("invoice_time").value,
+        order_no: document.getElementById("order_no").value,
+        order_date: document.getElementById("order_date").value,
+        lr_no: document.getElementById("lr_no").value,
+        lr_date: document.getElementById("lr_date").value,
+        vehicle_no: document.getElementById("vehicle_no").value,
+        driver_mobile: document.getElementById("driver_mobile").value,
+        transporter: document.getElementById("transporter").value,
+        payment_due: document.getElementById("payment_due").value,
+        receiver_add: document.getElementById("receiver_address").value,
+        receiver_email: document.getElementById("receiver_email").value,
+        receiver_phone: document.getElementById("receiver_phone").value,
+        receiver_gstin: document.getElementById("receiver_gstin").value,
+        consignee_add: document.getElementById("consignee_address").value,
+        consignee_email: document.getElementById("consignee_email").value,
+        consignee_phone: document.getElementById("consignee_phone").value,
+        consignee_gstin: document.getElementById("consignee_gstin").value,
+        items: []
+    }
+
+    // DESKTOP TABLE DATA
+    let rows = document.querySelectorAll("#items_table tbody tr")
+
+    rows.forEach(row => {
+        let inputs = row.querySelectorAll("input")
+        data.items.push({
+            description: inputs[0].value,
+            hsn: inputs[1].value,
+            gsm: inputs[2].value,
+            thickness: inputs[3].value,
+            size: inputs[4].value,
+            sheets: inputs[5].value,
+            bundle_weight: inputs[6].value,
+            total_bundle: inputs[7].value,
+            weight: inputs[8].value,
+            rate: inputs[9].value,
+            amount: inputs[10].value
+        })
+    })
+
+    console.log(data)
+
+    fetch("http://127.0.0.1:8000/invoices", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+        alert("Invoice Created")
+        window.open(res.pdf_url)
+    })
+}
+
+addItem()
+
+</script>
+
+</body>
+</html>
