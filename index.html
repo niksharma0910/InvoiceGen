@@ -327,25 +327,49 @@ function submitData() {
         items: []
     }
 
-    // DESKTOP TABLE DATA
-    let rows = document.querySelectorAll("#items_table tbody tr")
+    let mobileCards = document.querySelectorAll("#mobile_items .item-card")
 
-    rows.forEach(row => {
-        let inputs = row.querySelectorAll("input")
-        data.items.push({
-            description: inputs[0].value,
-            hsn: inputs[1].value,
-            gsm: inputs[2].value,
-            thickness: inputs[3].value,
-            size: inputs[4].value,
-            sheets: inputs[5].value,
-            bundle_weight: inputs[6].value,
-            total_bundle: inputs[7].value,
-            weight: inputs[8].value,
-            rate: inputs[9].value,
-            amount: inputs[10].value
+    if (mobileCards.length > 0) {
+        // use mobile
+        mobileCards.forEach(card => {
+            let inputs = card.querySelectorAll("input")
+
+            items.push({
+                description: inputs[0].value,
+                hsn: inputs[1].value,
+                gsm: inputs[2].value,
+                thickness: inputs[3].value,
+                size: inputs[4].value,
+                sheets: inputs[5].value,
+                bundle_weight: inputs[6].value,
+                total_bundle: inputs[7].value,
+                weight: inputs[8].value,
+                rate: inputs[9].value,
+                amount: inputs[10].value
+            })
+        })  
+    } else {
+        // use desktop
+        // DESKTOP TABLE DATA
+        let rows = document.querySelectorAll("#items_table tbody tr")
+
+        rows.forEach(row => {
+            let inputs = row.querySelectorAll("input")
+            data.items.push({
+                description: inputs[0].value,
+                hsn: inputs[1].value,
+                gsm: inputs[2].value,
+                thickness: inputs[3].value,
+                size: inputs[4].value,
+                sheets: inputs[5].value,
+                bundle_weight: inputs[6].value,
+                total_bundle: inputs[7].value,
+                weight: inputs[8].value,
+                rate: inputs[9].value,
+                amount: inputs[10].value
+            })
         })
-    })
+    }
 
     console.log(data)
 
