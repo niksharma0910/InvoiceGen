@@ -22,9 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-os.makedirs("invoices", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+PDF_DIR = os.path.join(BASE_DIR, "generated_pdfs")
 
-app.mount("/invoices", StaticFiles(directory="invoices"), name="invoices")
+os.makedirs(PDF_DIR, exist_ok=True)
+filename = os.path.join(PDF_DIR, f"{file_id}.pdf")
+app.mount("/pdfs", StaticFiles(directory=PDF_DIR), name="pdfs")
 
 def calculate_rounding(amount):
     net_amount = math.ceil(amount)
@@ -333,5 +336,5 @@ def create_invoice(data: dict):
     generate_pdf(data, filename)
 
     return {
-        "pdf_url": f"http://127.0.0.1:8000/{filename}"
+        "pdf_url": f"/pdfs/{file_id}.pdf"
     }
