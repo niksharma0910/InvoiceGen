@@ -350,7 +350,7 @@ function submitData() {
     .then(res => res.json())
     .then(res => {
         alert("Invoice Created")
-        window.open(res.pdf_url)
+        window.open(window.location.origin + res.pdf_url)
     })
 }
 
