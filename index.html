@@ -342,7 +342,7 @@ function submitData() {
 
     console.log(data)
 
-    fetch("http://127.0.0.1:8000/invoices", {
+    fetch("https://invoicegen-xpd1.onrender.com//invoices", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
