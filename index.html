@@ -270,6 +270,8 @@ function addItem() {
     ]
 
     labels.forEach((label, i) => {
+
+        let input = document.createElement("input")
         
         if (i >= 8) {
             input.type = "number"
@@ -278,8 +280,13 @@ function addItem() {
             input.type = "text"
         }
         inputs[label] = input
-        card.innerHTML += `<label>${label}</label>`
-        card.appendChild(input)
+
+        let labelEl = document.createElement("label")
+        labelEl.innerText = label
+    
+        card.appendChild(labelEl)
+        card.appendChild(input)    
+
     })
 
     inputs["Weight"].oninput = () => calculateAmount(inputs["Weight"], inputs["Rate"], inputs["Amount"])
